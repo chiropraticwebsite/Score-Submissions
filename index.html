@@ -2,34 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Score Blaster – Game Score Emailer</title>
+  <title>Coach Game Score Sender</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- EmailJS CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
+  <!-- Basic styling -->
   <style>
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
     }
 
     body {
-      background: #111827;
-      color: #f9fafb;
-      padding: 20px;
+      margin: 0;
+      padding: 1rem;
+      background: #f5f5f5;
+      color: #222;
     }
 
-    h1, h2 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
+    h1, h2, h3 {
+      margin-top: 0;
     }
 
     .container {
@@ -37,454 +29,446 @@
       margin: 0 auto;
     }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 20px;
-    }
-
     .card {
-      background: #1f2937;
+      background: #fff;
       border-radius: 8px;
-      padding: 16px;
-      border: 1px solid #374151;
+      padding: 1rem 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.05);
     }
 
     label {
       display: block;
-      font-size: 0.85rem;
-      margin-bottom: 4px;
-      color: #d1d5db;
+      font-weight: 600;
+      margin-top: 0.5rem;
     }
 
-    input, textarea, select {
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    textarea {
       width: 100%;
-      padding: 8px;
-      margin-bottom: 8px;
+      padding: 0.45rem 0.5rem;
       border-radius: 4px;
-      border: 1px solid #4b5563;
-      background: #111827;
-      color: #f9fafb;
+      border: 1px solid #ccc;
+      margin-top: 0.25rem;
     }
 
     textarea {
-      min-height: 80px;
+      min-height: 70px;
       resize: vertical;
     }
 
     button {
-      display: inline-block;
-      padding: 8px 14px;
-      border: none;
+      margin-top: 0.75rem;
+      padding: 0.5rem 1rem;
       border-radius: 4px;
-      background: #f59e0b;
-      color: #111827;
-      font-weight: bold;
+      border: none;
       cursor: pointer;
-      margin-top: 4px;
+      font-weight: 600;
+      background: #e53935;
+      color: #fff;
     }
 
-    button:hover {
-      background: #d97706;
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 10px;
+      margin-top: 0.75rem;
       font-size: 0.9rem;
     }
 
     th, td {
-      border: 1px solid #4b5563;
-      padding: 6px 8px;
+      border: 1px solid #ddd;
+      padding: 0.35rem 0.4rem;
       text-align: left;
     }
 
     th {
-      background: #111827;
+      background: #f0f0f0;
+    }
+
+    .status-sent {
+      color: #2e7d32;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      color: #f57c00;
+      font-weight: 600;
     }
 
     .small {
       font-size: 0.8rem;
-      color: #9ca3af;
+      color: #666;
     }
 
-    .status {
-      margin-top: 10px;
-      font-size: 0.9rem;
+    .inline-input {
+      width: 80px;
     }
 
-    .status.success {
-      color: #4ade80;
+    .message {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
     }
 
-    .status.error {
-      color: #f97373;
+    .message.success {
+      color: #2e7d32;
     }
 
-    @media (max-width: 800px) {
-      .grid {
-        grid-template-columns: 1fr;
+    .message.error {
+      color: #c62828;
+    }
+
+    .auth-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .auth-row .buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    @media (max-width: 700px) {
+      table {
+        font-size: 0.8rem;
+      }
+      .inline-input {
+        width: 60px;
       }
     }
   </style>
 
+  <!-- EmailJS -->
+  <script src="https://cdn.emailjs.com/sdk/3.2/email.min.js"></script>
   <script>
-    // Initialize EmailJS
-    (function () {
-      emailjs.init({
-        publicKey: "YOUR_PUBLIC_KEY_HERE", // <-- REPLACE THIS
-      });
-    })();
+    emailjs.init("js0OsdaHtUNCJw2vP");
   </script>
 </head>
 <body>
   <div class="container">
-    <h1>Score Blaster</h1>
-    <p class="small" style="text-align:center; margin-bottom: 20px;">
-      Add your schedule, set your email list, and blast out scores after each game.
-    </p>
+    <h1>Coach Game Score Sender</h1>
 
-    <!-- Top grid: Season info + Email list -->
-    <div class="grid">
-      <!-- Coach / Team Info + Email List -->
-      <div class="card">
-        <h2>Season Setup</h2>
-        <label for="coachName">Coach Name</label>
-        <input type="text" id="coachName" placeholder="Coach Smith" />
-
-        <label for="teamName">Team Name</label>
-        <input type="text" id="teamName" placeholder="Terrell Tigers" />
-
-        <label for="emailList">Score Email Recipients</label>
-        <textarea
-          id="emailList"
-          placeholder="Enter one or more emails, separated by commas
-(e.g., ad@school.org, media@localpaper.com)"
-        ></textarea>
-
-        <p class="small">
-          Tip: Configure your EmailJS template to use this as a <code>to_email_list</code> field or
-          set fixed recipients in the EmailJS dashboard.
-        </p>
+    <!-- AUTH -->
+    <div class="card">
+      <div class="auth-row">
+        <div>
+          <strong>Account</strong>
+          <div id="authStatus" class="small">Not signed in</div>
+        </div>
+        <div class="buttons">
+          <button id="loginBtn" type="button">Sign in with Google</button>
+          <button id="logoutBtn" type="button" style="display:none; background:#555;">
+            Log out
+          </button>
+        </div>
       </div>
-
-      <!-- Add Game to Schedule -->
-      <div class="card">
-        <h2>Add Game to Schedule</h2>
-
-        <label for="gameDate">Game Date</label>
-        <input type="date" id="gameDate" />
-
-        <label for="opponent">Opponent</label>
-        <input type="text" id="opponent" placeholder="Corsicana Tigers" />
-
-        <label for="location">Location</label>
-        <input type="text" id="location" placeholder="Home / Away / Stadium name" />
-
-        <button id="addGameBtn">Add Game</button>
-        <p class="small">Added games will appear in the schedule below.</p>
-      </div>
+      <div id="authMessage" class="message"></div>
     </div>
 
-    <!-- Schedule & Score Entry -->
-    <div class="grid">
-      <!-- Schedule List -->
-      <div class="card">
-        <h2>Season Schedule</h2>
-        <table id="scheduleTable">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Opponent</th>
-              <th>Location</th>
-            </tr>
-          </thead>
-          <tbody id="scheduleBody">
-            <!-- Filled by JS -->
-          </tbody>
-        </table>
-        <p class="small">
-          Select a game below to enter final score and send the email.
-        </p>
-      </div>
+    <!-- SETTINGS -->
+    <div class="card">
+      <h2>1. Season Setup</h2>
+      <form id="settingsForm">
+        <label>Team Name</label>
+        <input id="teamName" type="text" required />
 
-      <!-- Score Submission -->
-      <div class="card">
-        <h2>Enter Game Score & Send</h2>
+        <label>Season</label>
+        <input id="season" type="text" required />
 
-        <label for="gameSelect">Select Game</label>
-        <select id="gameSelect">
-          <!-- Options filled by JS -->
-        </select>
+        <label>Email List (comma separated)</label>
+        <textarea id="emails" required></textarea>
 
-        <label for="ourScore">Our Score</label>
-        <input type="number" id="ourScore" min="0" placeholder="e.g., 28" />
+        <button type="submit">Save Settings</button>
+        <div id="settingsMessage" class="message"></div>
+      </form>
+    </div>
 
-        <label for="theirScore">Opponent Score</label>
-        <input type="number" id="theirScore" min="0" placeholder="e.g., 21" />
+    <!-- ADD GAME -->
+    <div class="card">
+      <h2>2. Add Games to Schedule</h2>
 
-        <label for="notes">Notes (optional)</label>
-        <textarea
-          id="notes"
-          placeholder="Key stats, big plays, milestones, etc."
-        ></textarea>
+      <form id="gameForm">
+        <label>Date</label>
+        <input id="gameDate" type="date" required />
 
-        <button id="sendScoreBtn">Send Score Email</button>
-        <div id="statusMessage" class="status"></div>
-      </div>
+        <label>Opponent</label>
+        <input id="opponent" type="text" required />
+
+        <label>Location</label>
+        <input id="location" type="text" required />
+
+        <button type="submit">Add Game</button>
+      </form>
+
+      <h3>Schedule</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Opponent</th>
+            <th>Location</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleTableBody"></tbody>
+      </table>
+    </div>
+
+    <!-- SEND SCORES -->
+    <div class="card">
+      <h2>3. Enter Scores & Send Emails</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Opponent</th>
+            <th>Location</th>
+            <th>Your Score</th>
+            <th>Opponent Score</th>
+            <th>Send</th>
+            <th>Sent?</th>
+          </tr>
+        </thead>
+        <tbody id="scoreTableBody"></tbody>
+      </table>
+
+      <div id="sendMessage" class="message"></div>
     </div>
   </div>
 
-  <script>
-    // ====== Local Storage Keys ======
-    const LS_GAMES_KEY = "scoreBlaster_games";
-    const LS_SEASON_KEY = "scoreBlaster_season";
+  <!-- MAIN SCRIPT -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      collection,
+      getDocs,
+      addDoc,
+      updateDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // ====== State ======
-    let games = [];
-    let seasonInfo = {
-      coachName: "",
-      teamName: "",
-      emailList: "",
+    /* FIREBASE CONFIG */
+    const firebaseConfig = {
+      apiKey: "AIzaSyDH1ERiRuZ8ELMjxQo96ChTZ25cjJI1HpY",
+      authDomain: "score-submission-4d200.firebaseapp.com",
+      projectId: "score-submission-4d200",
+      storageBucket: "score-submission-4d200.firebasestorage.app",
+      messagingSenderId: "421478998862",
+      appId: "1:421478998862:web:b1964a65f3cc76998ff41f",
+      measurementId: "G-GN4LLM30Q7"
     };
 
-    // ====== DOM Elements ======
-    const coachNameInput = document.getElementById("coachName");
-    const teamNameInput = document.getElementById("teamName");
-    const emailListInput = document.getElementById("emailList");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
 
-    const gameDateInput = document.getElementById("gameDate");
-    const opponentInput = document.getElementById("opponent");
-    const locationInput = document.getElementById("location");
-    const addGameBtn = document.getElementById("addGameBtn");
+    let currentUser = null;
+    let state = { teamName: "", season: "", emails: [], games: [] };
 
-    const scheduleBody = document.getElementById("scheduleBody");
-    const gameSelect = document.getElementById("gameSelect");
+    /* FIRESTORE HELPERS */
+    function coachDoc() {
+      return doc(db, "coaches", currentUser.uid);
+    }
 
-    const ourScoreInput = document.getElementById("ourScore");
-    const theirScoreInput = document.getElementById("theirScore");
-    const notesInput = document.getElementById("notes");
-    const sendScoreBtn = document.getElementById("sendScoreBtn");
-    const statusMessage = document.getElementById("statusMessage");
-
-    // ====== Load / Save Helpers ======
-    function loadFromLocalStorage() {
-      const gamesJson = localStorage.getItem(LS_GAMES_KEY);
-      const seasonJson = localStorage.getItem(LS_SEASON_KEY);
-
-      if (gamesJson) {
-        try {
-          games = JSON.parse(gamesJson);
-        } catch (e) {
-          games = [];
-        }
+    async function loadData() {
+      const s = await getDoc(coachDoc());
+      if (s.exists()) {
+        state.teamName = s.data().teamName || "";
+        state.season = s.data().season || "";
+        state.emails = s.data().emails || [];
       }
-
-      if (seasonJson) {
-        try {
-          seasonInfo = JSON.parse(seasonJson);
-        } catch (e) {
-          seasonInfo = { coachName: "", teamName: "", emailList: "" };
-        }
-      }
-
-      coachNameInput.value = seasonInfo.coachName || "";
-      teamNameInput.value = seasonInfo.teamName || "";
-      emailListInput.value = seasonInfo.emailList || "";
+      const g = await getDocs(collection(coachDoc(), "games"));
+      state.games = g.docs.map(d => ({ id: d.id, ...d.data() }));
     }
 
-    function saveGames() {
-      localStorage.setItem(LS_GAMES_KEY, JSON.stringify(games));
-      renderSchedule();
-      renderGameSelect();
+    async function saveSettingsToFirestore() {
+      await setDoc(coachDoc(), {
+        teamName: state.teamName,
+        season: state.season,
+        emails: state.emails
+      }, { merge: true });
     }
 
-    function saveSeasonInfo() {
-      seasonInfo.coachName = coachNameInput.value.trim();
-      seasonInfo.teamName = teamNameInput.value.trim();
-      seasonInfo.emailList = emailListInput.value.trim();
-      localStorage.setItem(LS_SEASON_KEY, JSON.stringify(seasonInfo));
+    async function addGameToFirestore(game) {
+      const ref = await addDoc(collection(coachDoc(), "games"), game);
+      return ref.id;
     }
 
-    // ====== Render Functions ======
-    function renderSchedule() {
-      scheduleBody.innerHTML = "";
+    async function updateGameFirestore(game) {
+      await updateDoc(doc(coachDoc(), "games", game.id), game);
+    }
 
-      if (games.length === 0) {
-        const row = document.createElement("tr");
-        const cell = document.createElement("td");
-        cell.colSpan = 3;
-        cell.textContent = "No games added yet.";
-        scheduleBody.appendChild(row);
-        row.appendChild(cell);
+    /* RENDER */
+    function renderSettings() {
+      document.getElementById("teamName").value = state.teamName;
+      document.getElementById("season").value = state.season;
+      document.getElementById("emails").value = state.emails.join(", ");
+    }
+
+    function renderTables() {
+      const sched = document.getElementById("scheduleTableBody");
+      const score = document.getElementById("scoreTableBody");
+
+      sched.innerHTML = "";
+      score.innerHTML = "";
+
+      if (state.games.length === 0) {
+        sched.innerHTML = '<tr><td colspan="4">No games added.</td></tr>';
+        score.innerHTML = '<tr><td colspan="7">No games added.</td></tr>';
         return;
       }
 
-      const sortedGames = [...games].sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
-      });
+      const sorted = [...state.games].sort((a, b) => a.date.localeCompare(b.date));
 
-      for (const game of sortedGames) {
-        const row = document.createElement("tr");
-        const dateCell = document.createElement("td");
-        const oppCell = document.createElement("td");
-        const locCell = document.createElement("td");
+      for (const g of sorted) {
+        sched.innerHTML += `
+          <tr>
+            <td>${g.date}</td>
+            <td>${g.opponent}</td>
+            <td>${g.location}</td>
+            <td>${g.sent ? "Score emailed" : "Pending"}</td>
+          </tr>`;
 
-        dateCell.textContent = game.date || "";
-        oppCell.textContent = game.opponent || "";
-        locCell.textContent = game.location || "";
+        score.innerHTML += `
+          <tr>
+            <td>${g.date}</td>
+            <td>${g.opponent}</td>
+            <td>${g.location}</td>
+            <td><input data-id="${g.id}" data-role="home" class="inline-input" type="number" value="${g.homeScore ?? ""}"></td>
+            <td><input data-id="${g.id}" data-role="away" class="inline-input" type="number" value="${g.awayScore ?? ""}"></td>
+            <td><button class="sendBtn" data-id="${g.id}">Send Score Email</button></td>
+            <td>${g.sent ? "Sent" : "Not sent"}</td>
+          </tr>`;
+      }
 
-        row.appendChild(dateCell);
-        row.appendChild(oppCell);
-        row.appendChild(locCell);
-        scheduleBody.appendChild(row);
+      document.querySelectorAll(".sendBtn").forEach(btn =>
+        btn.addEventListener("click", onSendScore)
+      );
+    }
+
+    /* SEND EMAIL */
+    function sendScoreEmail(game) {
+      return emailjs.send(
+        "service_zc1pbfj",
+        "template_3fqvy3s",
+        {
+          team_name: state.teamName,
+          season: state.season,
+          game_date: game.date,
+          opponent: game.opponent,
+          location: game.location,
+          home_score: game.homeScore,
+          away_score: game.awayScore,
+          email_list: state.emails.join(", "),
+          subject_line: `${state.teamName} vs ${game.opponent} (${game.date}) Final Score`
+        }
+      );
+    }
+
+    /* HANDLERS */
+    async function onSettingsSubmit(e) {
+      e.preventDefault();
+      state.teamName = document.getElementById("teamName").value;
+      state.season = document.getElementById("season").value;
+      state.emails = document.getElementById("emails")
+        .value.split(",")
+        .map(e => e.trim())
+        .filter(e => e.length);
+
+      await saveSettingsToFirestore();
+      document.getElementById("settingsMessage").textContent = "Settings saved!";
+    }
+
+    async function onAddGame(e) {
+      e.preventDefault();
+
+      const game = {
+        date: document.getElementById("gameDate").value,
+        opponent: document.getElementById("opponent").value,
+        location: document.getElementById("location").value,
+        homeScore: null,
+        awayScore: null,
+        sent: false
+      };
+
+      const id = await addGameToFirestore(game);
+      state.games.push({ id, ...game });
+      renderTables();
+      document.getElementById("gameForm").reset();
+    }
+
+    async function onSendScore(e) {
+      const id = e.target.getAttribute("data-id");
+      const game = state.games.find(g => g.id === id);
+
+      const home = document.querySelector(`input[data-id="${id}"][data-role="home"]`).value;
+      const away = document.querySelector(`input[data-id="${id}"][data-role="away"]`).value;
+
+      game.homeScore = Number(home);
+      game.awayScore = Number(away);
+
+      try {
+        await sendScoreEmail(game);
+        game.sent = true;
+        await updateGameFirestore(game);
+        renderTables();
+        document.getElementById("sendMessage").textContent = "Score email sent!";
+      } catch (err) {
+        document.getElementById("sendMessage").textContent =
+          "Email Error: " + (err.text || err.message);
       }
     }
 
-    function renderGameSelect() {
-      gameSelect.innerHTML = "";
+    /* AUTH */
+    document.getElementById("loginBtn").onclick = () => signInWithPopup(auth, provider);
+    document.getElementById("logoutBtn").onclick = () => signOut(auth);
 
-      if (games.length === 0) {
-        const opt = document.createElement("option");
-        opt.value = "";
-        opt.textContent = "No games available";
-        gameSelect.appendChild(opt);
-        gameSelect.disabled = true;
-        return;
-      }
+    onAuthStateChanged(auth, async user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById("authStatus").textContent = `Signed in as ${user.email}`;
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-block";
 
-      gameSelect.disabled = false;
-
-      const sortedGames = [...games].sort((a, b) => {
-        return new Date(a.date) - new Date(b.date);
-      });
-
-      for (const game of sortedGames) {
-        const opt = document.createElement("option");
-        opt.value = game.id;
-        opt.textContent = `${game.date} – vs ${game.opponent} (${game.location})`;
-        gameSelect.appendChild(opt);
-      }
-    }
-
-    // ====== Status Helper ======
-    function setStatus(message, isError = false) {
-      statusMessage.textContent = message;
-      statusMessage.classList.remove("success", "error");
-      if (isError) {
-        statusMessage.classList.add("error");
+        await loadData();
+        renderSettings();
+        renderTables();
       } else {
-        statusMessage.classList.add("success");
+        currentUser = null;
+        document.getElementById("authStatus").textContent = "Not signed in";
+        document.getElementById("loginBtn").style.display = "inline-block";
+        document.getElementById("logoutBtn").style.display = "none";
       }
-    }
-
-    // ====== Event Listeners ======
-    coachNameInput.addEventListener("input", saveSeasonInfo);
-    teamNameInput.addEventListener("input", saveSeasonInfo);
-    emailListInput.addEventListener("input", saveSeasonInfo);
-
-    addGameBtn.addEventListener("click", () => {
-      const date = gameDateInput.value;
-      const opponent = opponentInput.value.trim();
-      const location = locationInput.value.trim();
-
-      if (!date || !opponent) {
-        alert("Please enter at least a date and opponent.");
-        return;
-      }
-
-      const newGame = {
-        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
-        date,
-        opponent,
-        location,
-      };
-
-      games.push(newGame);
-      saveGames();
-
-      gameDateInput.value = "";
-      opponentInput.value = "";
-      locationInput.value = "";
     });
 
-    sendScoreBtn.addEventListener("click", () => {
-      setStatus(""); // clear
-
-      if (games.length === 0) {
-        setStatus("No games to send. Add a game to the schedule first.", true);
-        return;
-      }
-
-      const selectedGameId = gameSelect.value;
-      if (!selectedGameId) {
-        setStatus("Please select a game.", true);
-        return;
-      }
-
-      const ourScore = ourScoreInput.value.trim();
-      const theirScore = theirScoreInput.value.trim();
-
-      if (ourScore === "" || theirScore === "") {
-        setStatus("Please enter both team scores.", true);
-        return;
-      }
-
-      const selectedGame = games.find((g) => g.id === selectedGameId);
-      if (!selectedGame) {
-        setStatus("Selected game not found.", true);
-        return;
-      }
-
-      const notes = notesInput.value.trim();
-      const emailList = emailListInput.value.trim();
-      const coachName = coachNameInput.value.trim();
-      const teamName = teamNameInput.value.trim();
-
-      // ====== EmailJS Send ======
-      const params = {
-        coach_name: coachName || "Coach",
-        team_name: teamName || "Our Team",
-        game_date: selectedGame.date,
-        opponent: selectedGame.opponent,
-        location: selectedGame.location,
-        our_score: ourScore,
-        their_score: theirScore,
-        notes: notes,
-        to_email_list: emailList, // configure in your EmailJS template if you want to use it
-      };
-
-      // Replace with your actual service & template IDs
-      const SERVICE_ID = "YOUR_SERVICE_ID_HERE";
-      const TEMPLATE_ID = "YOUR_TEMPLATE_ID_HERE";
-
-      setStatus("Sending score email...", false);
-
-      emailjs
-        .send(SERVICE_ID, TEMPLATE_ID, params)
-        .then(() => {
-          setStatus("Score email sent successfully!");
-          // Optionally clear scores/notes
-          // ourScoreInput.value = "";
-          // theirScoreInput.value = "";
-          // notesInput.value = "";
-        })
-        .catch((error) => {
-          console.error("EmailJS error:", error);
-          setStatus("There was a problem sending the email. Check console/logs.", true);
-        });
-    });
-
-    // ====== Init ======
-    loadFromLocalStorage();
-    renderSchedule();
-    renderGameSelect();
+    document.getElementById("settingsForm").addEventListener("submit", onSettingsSubmit);
+    document.getElementById("gameForm").addEventListener("submit", onAddGame);
   </script>
 </body>
 </html>
+
+
 
 
 
