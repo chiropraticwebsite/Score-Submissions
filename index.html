@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <title>Coach Game Score Sender</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Simple styling -->
+
+  <!-- Basic styling -->
   <style>
     * {
       box-sizing: border-box;
@@ -44,7 +45,8 @@
 
     input[type="text"],
     input[type="date"],
-    textarea {
+    textarea,
+    input[type="number"] {
       width: 100%;
       padding: 0.45rem 0.5rem;
       border-radius: 4px;
@@ -73,14 +75,6 @@
       cursor: not-allowed;
     }
 
-    .secondary-btn {
-      background: #555;
-    }
-
-    .inline-input {
-      width: 80px;
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -98,15 +92,6 @@
       background: #f0f0f0;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 0.15rem 0.4rem;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      background: #eee;
-      margin-left: 0.25rem;
-    }
-
     .status-sent {
       color: #2e7d32;
       font-weight: 600;
@@ -120,6 +105,10 @@
     .small {
       font-size: 0.8rem;
       color: #666;
+    }
+
+    .inline-input {
+      width: 80px;
     }
 
     .message {
@@ -145,19 +134,18 @@
     }
   </style>
 
-  <!-- EmailJS SDK (for sending emails from the browser) -->
+  <!-- EmailJS SDK -->
   <script src="https://cdn.emailjs.com/sdk/3.2/email.min.js"></script>
   <script>
-    // TODO: Replace with your own public key from EmailJS
-    // emailjs.init('YOUR_EMAILJS_PUBLIC_KEY');
+    // 🔴 REPLACE THIS with your actual public key from EmailJS (looks like "p_xxxxxxxxx")
+    emailjs.init("YOUR_EMAILJS_PUBLIC_KEY");
   </script>
 </head>
 <body>
   <div class="container">
     <h1>Coach Game Score Sender</h1>
     <p class="small">
-      Set your team info, add your schedule, then quickly send final scores to
-      your email list after each game.
+      Set your team info, add your schedule, then send final scores to your email list after each game.
     </p>
 
     <!-- SETTINGS CARD -->
@@ -208,7 +196,7 @@
       <p class="small">
         These are your games for the season. You will enter scores in the next section.
       </p>
-      <table id="scheduleTable">
+      <table>
         <thead>
           <tr>
             <th>Date</th>
@@ -218,7 +206,7 @@
           </tr>
         </thead>
         <tbody id="scheduleTableBody">
-          <!-- Games will be injected here -->
+          <!-- Games injected here -->
         </tbody>
       </table>
     </div>
@@ -229,7 +217,7 @@
       <p class="small">
         Find your game, enter the scores, and click "Send Score Email."
       </p>
-      <table id="scoreTable">
+      <table>
         <thead>
           <tr>
             <th>Date</th>
@@ -242,20 +230,19 @@
           </tr>
         </thead>
         <tbody id="scoreTableBody">
-          <!-- Games will be injected here -->
+          <!-- Games injected here -->
         </tbody>
       </table>
       <div id="sendMessage" class="message"></div>
       <p class="small">
-        Note: You must configure your EmailJS account and update the IDs in the
-        script for emails to send.
+        Note: You must configure your EmailJS account and update the keys/IDs in this page for emails to actually send.
       </p>
     </div>
   </div>
 
   <script>
     // ----------------------------
-    // Simple state management
+    // State management
     // ----------------------------
     const STORAGE_KEY = "coachScoreSender_v1";
 
@@ -311,7 +298,6 @@
         return;
       }
 
-      // Sort games by date
       const gamesSorted = [...state.games].sort((a, b) => {
         if (a.date < b.date) return -1;
         if (a.date > b.date) return 1;
@@ -319,7 +305,7 @@
       });
 
       gamesSorted.forEach((game) => {
-        // Schedule table row
+        // Schedule view row
         const tr1 = document.createElement("tr");
         tr1.innerHTML = `
           <td>${game.date || ""}</td>
@@ -335,7 +321,7 @@
         `;
         scheduleBody.appendChild(tr1);
 
-        // Score table row
+        // Score entry view row
         const tr2 = document.createElement("tr");
         tr2.innerHTML = `
           <td>${game.date || ""}</td>
@@ -377,7 +363,7 @@
         scoreBody.appendChild(tr2);
       });
 
-      // Attach click handlers for send buttons
+      // Attach send handlers
       document.querySelectorAll('button[data-role="sendBtn"]').forEach((btn) => {
         btn.addEventListener("click", onSendScoreClick);
       });
@@ -392,14 +378,14 @@
       const season = document.getElementById("season").value.trim();
       const emailsRaw = document.getElementById("emails").value;
 
+      const msg = document.getElementById("settingsMessage");
+      msg.textContent = "";
+      msg.className = "message";
+
       const emails = emailsRaw
         .split(",")
         .map((e) => e.trim())
         .filter((e) => e.length > 0);
-
-      const msg = document.getElementById("settingsMessage");
-      msg.textContent = "";
-      msg.className = "message";
 
       if (!teamName || !season || !emails.length) {
         msg.textContent =
@@ -459,7 +445,6 @@
         return;
       }
 
-      // Find the input fields for this row
       const homeInput = document.querySelector(
         `input[data-role="homeScore"][data-id="${gameId}"]`
       );
@@ -476,11 +461,9 @@
         return;
       }
 
-      // Update game in state
       game.homeScore = Number(homeScore);
       game.awayScore = Number(awayScore);
 
-      // Actually send the email
       sendScoreEmail(game)
         .then(() => {
           game.sent = true;
@@ -491,30 +474,32 @@
         })
         .catch((err) => {
           console.error("Email send error:", err);
-          sendMsg.textContent =
-            "There was a problem sending the email. Check console/logs.";
-          sendMsg.classList.add("error");
+          const details = err?.text || err?.message || JSON.stringify(err);
+          document.getElementById("sendMessage").textContent =
+            "Email error: " + details;
+          document.getElementById("sendMessage").className =
+            "message error";
         });
     }
 
     // ----------------------------
-    // Email sending (via EmailJS)
+    // Email sending (EmailJS)
     // ----------------------------
     function sendScoreEmail(game) {
-      // If EmailJS is not configured, we reject immediately
       if (typeof emailjs === "undefined") {
         return Promise.reject(
           new Error(
-            "EmailJS not loaded. Make sure the script tag and init call are set up."
+            "EmailJS not loaded. Check the script tag and emailjs.init call."
           )
         );
       }
 
-      // TODO: Replace with your actual EmailJS values
+      // 🔴 REPLACE THESE with your actual IDs from EmailJS dashboard
       const SERVICE_ID = "YOUR_SERVICE_ID";
       const TEMPLATE_ID = "YOUR_TEMPLATE_ID";
 
       const subject = `${state.teamName} vs ${game.opponent} (${game.date}) Final Score`;
+
       const bodyText = `
 ${state.teamName} ${state.season} Game Result
 
@@ -528,7 +513,6 @@ ${game.opponent}: ${game.awayScore}
       `.trim();
 
       const templateParams = {
-        // These variable names MUST match the ones you configure in your EmailJS template
         team_name: state.teamName,
         season: state.season,
         game_date: game.date,
@@ -538,12 +522,11 @@ ${game.opponent}: ${game.awayScore}
         away_score: game.awayScore,
         subject_line: subject,
         message_body: bodyText,
-        // You can use a single "to_email" in EmailJS or configure BCCs there.
-        // Here we are just passing the full list as a string.
+        // You can reference this in your EmailJS template if needed
         email_list: state.emails.join(", ")
       };
 
-      // This returns a Promise
+      // Returns a Promise
       return emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams);
     }
 
@@ -566,3 +549,5 @@ ${game.opponent}: ${game.awayScore}
   </script>
 </body>
 </html>
+
+
