@@ -64,10 +64,6 @@
       background: #e53935;
       color: #fff;
     }
-    button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
     table {
       width: 100%;
       border-collapse: collapse;
@@ -81,10 +77,6 @@
     th {
       background: #f0f0f0;
     }
-    .small {
-      font-size: 0.8rem;
-      color: #666;
-    }
     .inline-input {
       width: 70px;
     }
@@ -92,12 +84,9 @@
       margin-top: 0.5rem;
       font-size: 0.85rem;
     }
-    .success {
-      color: #2e7d32;
-    }
-    .error {
-      color: #c62828;
-    }
+    .success { color: #2e7d32; }
+    .error { color: #c62828; }
+
     .auth-row {
       display: flex;
       justify-content: space-between;
@@ -290,6 +279,7 @@
     function renderTables() {
       const sched = document.getElementById("scheduleTableBody");
       const score = document.getElementById("scoreTableBody");
+
       sched.innerHTML = "";
       score.innerHTML = "";
 
@@ -330,8 +320,8 @@
     /* SEND EMAIL */
     function sendScoreEmail(game) {
       return emailjs.send(
-        "service_zc1pbfj",          /* YOUR SERVICE ID */
-        "template_3fqvy3s",        /* YOUR TEMPLATE ID */
+        "service_zc1pbfj",
+        "template_3fqvy3s",
         {
           team_name: state.teamName,
           season: state.season,
@@ -432,6 +422,9 @@
       game.homeScore = Number(home);
       game.awayScore = Number(away);
 
+      /* 🔍 DEBUG: Log exactly what is being sent to EmailJS */
+      console.log("Scores being sent:", game.homeScore, game.awayScore);
+
       try {
         await sendScoreEmail(game);
         game.sent = true;
@@ -454,7 +447,6 @@
       try {
         await signInWithPopup(auth, provider);
       } catch (err) {
-        console.error("Login error:", err);
         msg.textContent = "Login failed: " + err.message;
         msg.className = "message error";
       }
@@ -467,7 +459,6 @@
       try {
         await signOut(auth);
       } catch (err) {
-        console.error("Logout error:", err);
         msg.textContent = "Logout failed: " + err.message;
         msg.className = "message error";
       }
@@ -476,9 +467,7 @@
     onAuthStateChanged(auth, async user => {
       const status = document.getElementById("authStatus");
       const msg = document.getElementById("authMessage");
-
       msg.textContent = "";
-      msg.className = "message";
 
       if (user) {
         currentUser = user;
@@ -507,7 +496,7 @@
       }
     });
 
-    /* EVENT LISTENERS */
+    /* EVENTS */
     document.getElementById("loginBtn").addEventListener("click", handleLogin);
     document.getElementById("logoutBtn").addEventListener("click", handleLogout);
     document.getElementById("settingsForm").addEventListener("submit", onSettingsSubmit);
@@ -515,12 +504,5 @@
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
 
 
